@@ -17,11 +17,9 @@ def wczytaj(isOrdered):
     df = pd.read_csv("dane1.csv")
     if (isOrdered):
         df = df.iloc[:, 1:]
-    print(df)
     df['Suma'] = sumuj_rzad(df)
     df = df.sort_values(by='Suma', ascending=False)
-    print(df)
-    best_perm(df.iloc[:3, :], df.iloc[4,:])
+    wykonaj(df)
 
 
 def policz_czasy(df):
@@ -44,8 +42,6 @@ def policz_czasy(df):
                 poprzednie_zadanie = df_calc.at[row, df_calc.columns[itr-1]]
                 df_calc.at[row,col]=max(poprzednia_czesc, poprzednie_zadanie) + aktualny
         itr=itr+1
-    print(df_calc)
-    print(df_calc.iloc[len(df_calc.index)-1,len(df_calc.columns)-2])
     return df_calc.iloc[len(df_calc.index)-1,len(df_calc.columns)-2]
 
 def best_perm(df, new_row):
@@ -59,8 +55,6 @@ def best_perm(df, new_row):
             minczas=czas
             pozycja=i;
     df2=insert_row(df,new_row,pozycja)
-    print("Best")
-    print(df2)
     return df2
 
 def insert_row(df, row, row_index):
@@ -69,10 +63,19 @@ def insert_row(df, row, row_index):
     c=df.loc[row_index]
     df.loc[row_index]=df.iloc[len(df.index)-1]
     df.loc[len(df.index) - 1]=c
-    print(df)
     return df
 
-def wykonaj():
+def wykonaj(df):
+    odf=df.loc[0:1,:]
+    print("aa")
+    print(odf)
+    for i in range(1, len(df.index)):
+        print(odf)
+        odf=best_perm(odf,df.iloc[i-1,:])
+
+    print("koncowa")
+    print(odf)
+    print(policz_czasy(odf))
     return 0
 
 
