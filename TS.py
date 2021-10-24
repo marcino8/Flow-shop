@@ -17,9 +17,10 @@ def initrandomswap(df):
 
 def calculate_moves(df, n):
     moves = []
-    for i in range(1, n):
-        df2, x, y = randomswap(df)
-        moves.append(Move(x, y, calculate_time(df2) - calculate_time(df)))  # new time - old time
+    for i in range(1, n-1):
+        for j in range(i + 1, n):
+            df2 = swap(df, i, j)
+            moves.append(Move(i, j, calculate_time(df2) - calculate_time(df)))  # new time - old time
     return moves
 
 
@@ -64,11 +65,12 @@ def update_tabu_list(tl):
                 value = value - 1
     return tl
 
+
 def ts(df, s):
     tabu_list = np.zeros((len(df.index), len(df.index)))
     solution = initrandomswap(df)
-    for i in range(1, 100):
-        moves = calculate_moves(solution, 100)
+    for i in range(1, 1000):
+        moves = calculate_moves(solution, len(df.index))
         best_move = select_best_move(moves, tabu_list)
         solution = swap(solution, best_move.x, best_move.y)
         tabu_list = update_tabu_list(tabu_list)

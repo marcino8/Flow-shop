@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
+import copy
 
 
 def initrandomswap(df):
+    df2=copy.copy(df)
     for i in range(1, 300):
-        randomswap(df)
-    return df
+        randomswap(df2)
+    return df2
 
 
 def randomswap(df):
@@ -21,12 +23,11 @@ def generate_swap_indexes(df):
     return [np.random.randint(1, len(df.index)), np.random.randint(1, len(df.index))]
 
 
-def sa(df):
-    t = 0.9
+def ihc(df):
     tasks = len(df.index)
-    solution = initrandomswap(df)
-    while t > 0.0001:
-        print(t)
+    best_solution = initrandomswap(df)
+    for j in range(1,1000):
+        solution = initrandomswap(df)
         for i in range(1, 7 * (tasks - 1) ^ 2):
             df2 = randomswap(solution)
             t1 = calculate_time(solution)
@@ -34,10 +35,10 @@ def sa(df):
             delta_time = t2 - t1
             if delta_time < 0:
                 solution = df2
-            elif np.random.random() > np.exp((-1) * delta_time / t):
-                solution = df2
-        t = t * 0.75
-    return solution
+        if calculate_time(best_solution)-calculate_time(solution) > 0:
+            best_solution = solution
+        print(calculate_time(best_solution))
+    return best_solution
 
 
 def calculate_time(df):
@@ -68,7 +69,7 @@ def load(isOrdered):
     if isOrdered:
         df = df.iloc[:, 1:]
     print(df.index)
-    final = sa(df)
+    final = ihc(df)
     print(calculate_time(final))
 
 
