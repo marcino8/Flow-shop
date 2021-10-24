@@ -26,6 +26,7 @@ def calculate_time(df):
     df_calc = df.iloc[:, 1:]
     df_calc = df_calc.reset_index()
     df_calc = df_calc.iloc[:, 1:]
+    print(df.columns)
     itr = 0
     for col in df_calc.columns:
         for row in df_calc.index:
