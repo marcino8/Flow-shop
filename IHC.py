@@ -11,12 +11,13 @@ def initrandomswap(df):
 
 
 def randomswap(df):
-    where_to_put, what_to_put = generate_swap_indexes(df)
-    temp = df.iloc[where_to_put]
-    df.loc[where_to_put] = df.iloc[what_to_put]
-    df.loc[what_to_put] = temp
-    df = df.reset_index(drop=True)
-    return df
+    df2=copy.copy(df)
+    where_to_put, what_to_put = generate_swap_indexes(df2)
+    temp = df2.iloc[where_to_put]
+    df2.loc[where_to_put] = df2.iloc[what_to_put]
+    df2.loc[what_to_put] = temp
+    df2 = df2.reset_index(drop=True)
+    return df2
 
 
 def generate_swap_indexes(df):
@@ -26,9 +27,10 @@ def generate_swap_indexes(df):
 def ihc(df):
     tasks = len(df.index)
     best_solution = initrandomswap(df)
-    for j in range(1,1000):
+    for j in range(1,100):
+        print(j)
         solution = initrandomswap(df)
-        for i in range(1, 7 * (tasks - 1) ^ 2):
+        for i in range(1, (tasks-50) ^ 2):
             df2 = randomswap(solution)
             t1 = calculate_time(solution)
             t2 = calculate_time(df2)
@@ -65,11 +67,12 @@ def calculate_time(df):
 
 
 def load(isOrdered):
-    df = pd.read_csv("dane1.csv")
+    df = pd.read_csv("dane2.csv")
     if isOrdered:
         df = df.iloc[:, 1:]
     print(df.index)
     final = ihc(df)
+    final.to_csv("dane2_ihc.csv", sep=",")
     print(calculate_time(final))
 
 

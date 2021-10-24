@@ -14,7 +14,7 @@ def sum_row(df):
 
 
 def load(isOrdered):
-    df = pd.read_csv("dane1.csv")
+    df = pd.read_csv("dane2.csv")
     if (isOrdered):
         df = df.iloc[:, 1:]
     df['Suma'] = sum_row(df)
@@ -70,8 +70,9 @@ def start(df):
     print(odf)
     for i in range(1, len(df.index)):
         odf=hc(odf,df.iloc[i-1,:])
-    print(calculate_time(odf))
-    return 0
+        print(calculate_time(odf))
+    odf.to_csv("dane2_neh.csv", sep=",")
 
 
 load(True)
+## DLA DRUGIEGO ZBIORU DANYCH 11451

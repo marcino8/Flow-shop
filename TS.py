@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+import copy
 
 class Move:
     def __init__(self, x, y, time):
@@ -9,27 +9,49 @@ class Move:
         self.time = time  # new time - old time // if lower then zero we're happy // the lower the better
 
 
+
+
 def initrandomswap(df):
+    df2=copy.copy(df)
     for i in range(1, 300):
-        df, x, y = randomswap(df)
-    return df
+        randomswap(df2)
+    return df2
 
 
-def calculate_moves(df, n):
+def is_better_then_in_list(list, dt, x, y, s):
+    if len(list) > s :
+        maks = Move(-1,-1, -892176394572)
+        dum = False
+        for el in list:
+            if dt < el.time:
+                dum=True
+            if el.time > maks.time:
+                maks=el
+        if dum:
+            list.append(Move(x, y, dt))
+            list.remove(maks)
+    else:
+        list.append(Move(x,y,dt))
+    return list
+
+
+def calculate_moves(df, n, s):
     moves = []
     for i in range(1, n-1):
         for j in range(i + 1, n):
             df2 = swap(df, i, j)
-            moves.append(Move(i, j, calculate_time(df2) - calculate_time(df)))  # new time - old time
+            delta_time = calculate_time(df2) - calculate_time(df)
+            moves = is_better_then_in_list(moves, delta_time, i, j, s)
     return moves
 
 
 def swap(df, x, y):
-    temp = df.iloc[x]
-    df.loc[x] = df.iloc[y]
-    df.loc[y] = temp
-    df = df.reset_index(drop=True)
-    return df
+    df2=copy.copy(df)
+    temp = df2.iloc[x]
+    df2.loc[x] = df2.iloc[y]
+    df2.loc[y] = temp
+    df2 = df2.reset_index(drop=True)
+    return df2
 
 
 def randomswap(df):
@@ -69,8 +91,8 @@ def update_tabu_list(tl):
 def ts(df, s):
     tabu_list = np.zeros((len(df.index), len(df.index)))
     solution = initrandomswap(df)
-    for i in range(1, 1000):
-        moves = calculate_moves(solution, len(df.index))
+    for i in range(1, 100):
+        moves = calculate_moves(solution, len(df.index), s)
         best_move = select_best_move(moves, tabu_list)
         solution = swap(solution, best_move.x, best_move.y)
         tabu_list = update_tabu_list(tabu_list)
@@ -103,11 +125,12 @@ def calculate_time(df):
 
 
 def load(isOrdered):
-    df = pd.read_csv("dane1.csv")
+    df = pd.read_csv("dane2.csv")
     if isOrdered:
         df = df.iloc[:, 1:]
     print(df.index)
-    final = ts(df, 3)
+    final = ts(df, 5)
+    final.to_csv("dane2_ts.csv", sep=",")
     print(calculate_time(final))
 
 
