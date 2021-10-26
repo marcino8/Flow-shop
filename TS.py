@@ -1,6 +1,11 @@
+import itertools
+import time
+from numba import jit, cuda
+
 import numpy as np
 import pandas as pd
 import copy
+
 
 class Move:
     def __init__(self, x, y, time):
@@ -9,44 +14,72 @@ class Move:
         self.time = time  # new time - old time // if lower then zero we're happy // the lower the better
 
 
-
-
 def initrandomswap(df):
-    df2=copy.copy(df)
+    df2 = copy.copy(df)
     for i in range(1, 300):
         randomswap(df2)
     return df2
 
 
 def is_better_then_in_list(list, dt, x, y, s):
-    if len(list) > s :
-        maks = Move(-1,-1, -892176394572)
+    if len(list) > s:
+        maks = Move(-1, -1, -892176394572)
         dum = False
         for el in list:
             if dt < el.time:
-                dum=True
+                dum = True
             if el.time > maks.time:
-                maks=el
+                maks = el
         if dum:
             list.append(Move(x, y, dt))
             list.remove(maks)
     else:
-        list.append(Move(x,y,dt))
+        list.append(Move(x, y, dt))
     return list
 
 
 def calculate_moves(df, n, s):
     moves = []
-    for i in range(1, n-1):
+    for i in range(1, n - 1):
+        print(i)
         for j in range(i + 1, n):
             df2 = swap(df, i, j)
             delta_time = calculate_time(df2) - calculate_time(df)
             moves = is_better_then_in_list(moves, delta_time, i, j, s)
+
     return moves
 
 
+def calculate_moves2(df, n, s):
+    tasks = []
+    for i in range(1, len(df.index)):
+        tasks.append(i)
+    moves = itertools.combinations(tasks, 2)
+    print("hola")
+    top_list = []
+    iter = 0
+    for move in moves:
+        iter = iter + 1
+        df2 = swap(df, move[0], move[1])
+        delta_time = calculate_time(df2) - calculate_time(df)
+        if len(top_list) > s:
+            maks = Move(-1, -1, -892176394572)
+            dum = False
+            for el in top_list:
+                if delta_time < el.time:
+                    dum = True
+                if el.time > maks.time:
+                    maks = el
+            if dum:
+                top_list.append(Move(move[0], move[1], delta_time))
+                top_list.remove(maks)
+        else:
+            top_list.append(Move(move[0], move[1], delta_time))
+        print(iter)
+
+
 def swap(df, x, y):
-    df2=copy.copy(df)
+    df2 = copy.copy(df)
     temp = df2.iloc[x]
     df2.loc[x] = df2.iloc[y]
     df2.loc[y] = temp
@@ -112,7 +145,7 @@ def calculate_time(df):
             if row == 0 and itr == 0:
                 df_calc.at[row, col] = current
             elif row == 0:
-                df_calc.at[row, col] = current
+                df_calc.at[row, col] = current+df_calc.at[row, df_calc.columns[itr - 1]]
             elif itr == 0:
                 previous_job = df_calc.at[row - 1, col]
                 df_calc.at[row, col] = previous_job + current
@@ -122,6 +155,7 @@ def calculate_time(df):
                 df_calc.at[row, col] = max(previous_job, previous_task) + current
         itr = itr + 1
     return df_calc.iloc[len(df_calc.index) - 1, len(df_calc.columns) - 2]
+
 
 
 def load(isOrdered):
@@ -134,4 +168,5 @@ def load(isOrdered):
     print(calculate_time(final))
 
 
-load(True)
+if __name__ == '__main__':
+    load(True)

@@ -30,8 +30,10 @@ def ihc(df):
     for j in range(1,100):
         print(j)
         solution = initrandomswap(df)
-        for i in range(1, (tasks-50) ^ 2):
+        for i in range(1, (tasks-1)**2):
+            print(i)
             df2 = randomswap(solution)
+
             t1 = calculate_time(solution)
             t2 = calculate_time(df2)
             delta_time = t2 - t1
@@ -54,7 +56,7 @@ def calculate_time(df):
             if row == 0 and itr == 0:
                 df_calc.at[row, col] = current
             elif row == 0:
-                df_calc.at[row, col] = current
+                df_calc.at[row, col] = current+df_calc.at[row, df_calc.columns[itr - 1]]
             elif itr == 0:
                 previous_job = df_calc.at[row - 1, col]
                 df_calc.at[row, col] = previous_job + current

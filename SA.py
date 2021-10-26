@@ -1,4 +1,5 @@
 import copy
+import time
 
 import numpy as np
 import pandas as pd
@@ -25,12 +26,12 @@ def generate_swap_indexes(df):
 
 
 def sa(df):
-    t = 0.9
-    tasks = len(df.index)
+    t = 0.6
+    tasks = (len(df.index)-1)
     solution = initrandomswap(df)
-    while t > 0.0000001:
+    while t > 0.00001:
         print(t)
-        for i in range(1, (tasks - 1) ^ 2):
+        for i in range(1, (tasks - 1)**2):
             df2 = randomswap(solution)
             t1 = calculate_time(solution)
             t2 = calculate_time(df2)
@@ -39,7 +40,7 @@ def sa(df):
                 solution = df2
             elif np.random.random() > np.exp((-1) * delta_time / t):
                 solution = df2
-        t = t * 0.75
+        t = t * 0.9
     return solution
 
 
@@ -54,7 +55,7 @@ def calculate_time(df):
             if row == 0 and itr == 0:
                 df_calc.at[row, col] = current
             elif row == 0:
-                df_calc.at[row, col] = current
+                df_calc.at[row, col] = current+df_calc.at[row, df_calc.columns[itr - 1]]
             elif itr == 0:
                 previous_job = df_calc.at[row - 1, col]
                 df_calc.at[row, col] = previous_job + current
@@ -72,7 +73,7 @@ def load(isOrdered):
         df = df.iloc[:, 1:]
     print(df.index)
     final = sa(df)
-    final.to_csv("dane2_sa.csv", sep=",")
+    final.to_csv("dane2_sat06_09.csv", sep=",")
     print(calculate_time(final))
 
 

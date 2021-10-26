@@ -26,7 +26,6 @@ def calculate_time(df):
     df_calc = df.iloc[:, 1:]
     df_calc = df_calc.reset_index()
     df_calc = df_calc.iloc[:, 1:]
-    print(df.columns)
     itr = 0
     for col in df_calc.columns:
         for row in df_calc.index:
@@ -34,7 +33,7 @@ def calculate_time(df):
             if row == 0 and itr == 0:
                 df_calc.at[row, col] = current
             elif row == 0:
-                df_calc.at[row, col] = current
+                df_calc.at[row, col] = current+df_calc.at[row, df_calc.columns[itr - 1]]
             elif itr == 0:
                 previous_job = df_calc.at[row - 1, col]
                 df_calc.at[row, col] = previous_job + current
