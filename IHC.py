@@ -9,7 +9,8 @@ def initrandomswap_m(m):
         randomswap_m(m2)
     return m2
 
-def randomswap_m(m):
+def randomswap_m(mt):
+    m = copy.copy(mt)
     where_to_put, what_to_put = generate_swap_indexes_m(m)
     temp = m[where_to_put]
     m[where_to_put] = m[what_to_put]
@@ -25,8 +26,6 @@ def ihc(m):
         print(j)
         solution = initrandomswap_m(m)
         for i in range(1, 10000):
-            if i%100==0:
-                print(i/100)
             m2 = randomswap_m(solution)
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
