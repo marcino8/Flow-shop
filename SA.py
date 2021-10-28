@@ -5,7 +5,7 @@ import numpy as np
 
 def initrandomswap_m(m):
     m2 = copy.copy(m)
-    for i in range(1, 300):
+    for i in range(1, 5000):
         randomswap_m(m2)
     return m2
 
@@ -26,22 +26,24 @@ def generate_swap_indexes_m(m):
 
 
 def sa(m):
-    t = 0.6
+    t = 0.99
     solution = initrandomswap_m(m)
-    while t > 0.00001:
+    while t > 0.000000001:
         print(t, calculate_time_matrices(solution))
-        for i in range(1, 10000):
-            print(calculate_time_matrices(solution))
+        no_change = 0
+        for i in range(1, 30000):
             m2 = randomswap_m(solution)
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
             delta_time = t2 - t1
             if delta_time < 0:
                 solution = m2
-                print("lepiej")
             elif np.random.random() > np.exp(delta_time / t):
                 solution = m2
-                print("gorzej")
+            else:
+                no_change+=1
+            if no_change>5000:
+                break
         t = t * 0.9
     return solution
 
@@ -65,7 +67,7 @@ def load():
     df = genfromtxt('dane2.csv', delimiter=',')
     df = df[1:][:]
     final = sa(df)
-    final.to_csv("dane2_ihc.csv", sep=",")
+    np.savetxt("dane2_sa099_092.csv", final, delimiter=",")
     print(calculate_time_matrices(final))
 
 
