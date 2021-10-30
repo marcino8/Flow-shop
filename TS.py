@@ -54,24 +54,25 @@ def update_tabu_list(tl):
     return tl
 
 
-def ts(m, s):
+def ts(s, inside_iter, file_to_read, file_to_save):
+    m = np.genfromtxt(file_to_read, delimiter=',')
+    m = m[1:][:]
     tabu_list = np.zeros((len(m), len(m)))
     solution = initrandomswap_m(m)
-    for i in range(1, 1000):
+    for i in range(1, inside_iter):
         start = time.time()
         print(i)
         print(calculate_time_matrices(solution))
         move = calculate_moves2(solution, tabu_list)
-        print(move)
         solution = swap(solution, move[0], move[1])
         tabu_list = update_tabu_list(tabu_list)
         tabu_list[move[0], move[1]] = s
-        print(time.time() - start)
-        # np.savetxt("dane2_ts_10.csv", solution, delimiter=",")
-    return solution
-
+        print("time per inside iter :",time.time() - start)
+    np.savetxt(file_to_save, solution, delimiter=",")
+    print("FINAL FOR ", s, "BLOCKS ", inside_iter, "INSIDE ITERATIONS ", "SAVED TO ", file_to_save)
 
 def calculate_time_matrices(matrix):
+
     m = copy.copy(matrix[:, 1:])
     for row in range(0, len(m)):
         for el in range(0, len(m[0])):
@@ -86,13 +87,5 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-def load(s):
-    df = np.genfromtxt('dane2.csv', delimiter=',')
-    df = df[1:][:]
-    final = ts(df, s)
-    np.savetxt("dane2_ts_10.csv", final, delimiter=",")
-    print(calculate_time_matrices(final))
-
-
-load(10)
+ts(5,100, 'dane2.csv','dane2_ts_5_100.csv')
 

@@ -25,13 +25,16 @@ def generate_swap_indexes_m(m):
     return [np.random.randint(1, len(m)), np.random.randint(1, len(m))]
 
 
-def ihc(m):
+def ihc(outside_iter, indide_iter, no_change_number, file_to_read, file_to_save):
+    m = genfromtxt(file_to_read, delimiter=',')
+    m = m[1:][:]
     best_solution = initrandomswap_m(m)
-    for j in range(1, 1000):
-        print(j)
+    for j in range(1, outside_iter):
+        start=time.time()
+        print("OUTSIDE ITER:", j)
         solution = initrandomswap_m(m)
         no_change = 0
-        for i in range(1, 20000):
+        for i in range(1, indide_iter):
             m2 = randomswap_m(solution)
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
@@ -40,12 +43,14 @@ def ihc(m):
                 solution = m2
             else:
                 no_change += 1
-            if no_change > 100000:
+            if no_change > no_change_number:
                 break
         if calculate_time_matrices(best_solution) - calculate_time_matrices(solution) > 0:
             best_solution = solution
         print(calculate_time_matrices(best_solution))
-    return best_solution
+        print("time per outside iter :", time.time() - start)
+    np.savetxt(file_to_save, best_solution, delimiter=",")
+    print("FINAL FOR ", indide_iter, "INSIDE ITER ", outside_iter, "OUTSIDE ITER ", "WITH NO CHANGE ", no_change_number, "SAVED TO ", file_to_save)
 
 
 def calculate_time_matrices(matrix):
@@ -63,14 +68,6 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-def load():
-    df = genfromtxt('dane2.csv', delimiter=',')
-    df = df[1:][:]
-    final = ihc(df)
-    np.savetxt("dane2_ihc1000_20k.csv", final, delimiter=",")
-    print(calculate_time_matrices(final))
+ihc(100, 1000, 999999, 'dane2.csv', 'dane2_ihc_100_1k_nonochange') # FOR NOT USING NO_CHANGE PLEASE PUT BIG NUMBER
 
 
-
-
-load()

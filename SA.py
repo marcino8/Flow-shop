@@ -1,4 +1,6 @@
 import copy
+import time
+
 from numpy import genfromtxt
 import numpy as np
 
@@ -25,13 +27,16 @@ def generate_swap_indexes_m(m):
     return [np.random.randint(1, len(m)), np.random.randint(1, len(m))]
 
 
-def sa(m):
-    t = 0.99
+def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_to_save):
+    m = genfromtxt(file_to_read, delimiter=',')
+    m = m[1:][:]
+    t = start_T
     solution = initrandomswap_m(m)
     while t > 0.000000001:
-        print(t, calculate_time_matrices(solution))
+        start = time.time()
+        print("TEMPERATURE",t, calculate_time_matrices(solution))
         no_change = 0
-        for i in range(1, 30000):
+        for i in range(1, inside_iter):
             m2 = randomswap_m(solution)
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
@@ -42,10 +47,15 @@ def sa(m):
                 solution = m2
             else:
                 no_change+=1
-            if no_change>5000:
+            if no_change>no_change_number:
                 break
-        t = t * 0.9
-    return solution
+        print("time per outside iter :", time.time() - start)
+        if geom:
+            t = t/(1+red_T*t)
+        else:
+            t = t * red_T
+    np.savetxt(file_to_save, solution, delimiter=",")
+    print("FINAL FOR ", t, "T START ", inside_iter, "INSIDE ITERATIONS ", red_T, "REDUCTION ", "SAVED TO ", file_to_save)
 
 
 def calculate_time_matrices(matrix):
@@ -63,12 +73,5 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-def load():
-    df = genfromtxt('dane2.csv', delimiter=',')
-    df = df[1:][:]
-    final = sa(df)
-    np.savetxt("dane2_sa099_092.csv", final, delimiter=",")
-    print(calculate_time_matrices(final))
 
-
-load()
+sa(1, 0.8, False,1000, 999999, 'dane2.csv', 'dane2_sa_1_08_nonochange.csv')
