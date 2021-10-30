@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import copy
 from numpy import genfromtxt
@@ -38,7 +40,7 @@ def ihc(m):
                 solution = m2
             else:
                 no_change += 1
-            if no_change > 1000:
+            if no_change > 100000:
                 break
         if calculate_time_matrices(best_solution) - calculate_time_matrices(solution) > 0:
             best_solution = solution

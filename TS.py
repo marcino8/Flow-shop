@@ -1,17 +1,6 @@
-import itertools
 import time
-from numba import jit, cuda
-
 import numpy as np
-import pandas as pd
 import copy
-
-
-class Move:
-    def __init__(self, x, y, time): #
-        self.x = x
-        self.y = y
-        self.time = time  # new time - old time // if lower then zero we're happy // the lower the better
 
 
 def initrandomswap_m(m):
@@ -21,36 +10,20 @@ def initrandomswap_m(m):
     return m2
 
 
-def is_better_then_in_list(list, dt, x, y, s):
-    if len(list) > s*5:
-        maks = Move(-1, -1, -892176394572)
-        dum = False
-        for el in list:
-            if dt < el.time:
-                dum = True
-            if el.time > maks.time:
-                maks = el
-        if dum:
-            list.append(Move(x, y, dt))
-            list.remove(maks)
-    else:
-        list.append(Move(x, y, dt))
-    return list
-
-
-def calculate_moves(m, s):
-    moves = []
+def calculate_moves2(m, tl):
+    move = [0, 0, 0]
     for i in range(1, len(m)):
         for j in range(i + 1, len(m)):
-            m2 = swap(m, i, j)
-            delta_time = calculate_time_matrices(m2) - calculate_time_matrices(m)
-            moves = is_better_then_in_list(moves, delta_time, i, j, s)
-
-    return moves
+            if is_not_present_in_tl(tl, i, j):
+                m2 = swap(m, i, j)
+                delta_time = calculate_time_matrices(m2) - calculate_time_matrices(m)
+                if delta_time < move[2]:
+                    move = [i, j, delta_time]
+    return move
 
 
 def swap(mt, x, y):
-    m=copy.copy(mt)
+    m = copy.copy(mt)
     temp = m[x]
     m[x] = m[y]
     m[y] = temp
@@ -69,22 +42,13 @@ def generate_swap_indexes_m(m):
     return [np.random.randint(1, len(m)), np.random.randint(1, len(m))]
 
 
-def is_not_present_in_tl(move, tl):
-    return 0 == tl[move.x][move.y] and 0 == tl[move.y][move.x]
-
-
-def select_best_move(moves, tl):
-    best=moves[0]
-    for move in moves:
-        if is_not_present_in_tl(move, tl):
-            if best.time > move.time:
-                best = move
-    return best
+def is_not_present_in_tl(tl, i, j):
+    return 0 == tl[i, j] and 0 == tl[j, i]
 
 
 def update_tabu_list(tl):
-    for i in range(0, len(m)):
-        for j in range(0,len(m[0])):
+    for i in range(0, len(tl)):
+        for j in range(0, len(tl)):
             if tl[i][j] > 0:
                 tl[i][j] -= 1
     return tl
@@ -94,15 +58,16 @@ def ts(m, s):
     tabu_list = np.zeros((len(m), len(m)))
     solution = initrandomswap_m(m)
     for i in range(1, 1000):
+        start = time.time()
         print(i)
         print(calculate_time_matrices(solution))
-        moves = calculate_moves(solution, s)
-        best_move = select_best_move(moves, tabu_list)
-        print(best_move.x,best_move.y,best_move.time)
-        solution = swap(solution, best_move.x, best_move.y)
+        move = calculate_moves2(solution, tabu_list)
+        print(move)
+        solution = swap(solution, move[0], move[1])
         tabu_list = update_tabu_list(tabu_list)
-        tabu_list[best_move.x][best_move.y] = s
-        np.savetxt("dane2_ts_10.csv", solution, delimiter=",")
+        tabu_list[move[0], move[1]] = s
+        print(time.time() - start)
+        # np.savetxt("dane2_ts_10.csv", solution, delimiter=",")
     return solution
 
 
@@ -121,7 +86,6 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-
 def load(s):
     df = np.genfromtxt('dane2.csv', delimiter=',')
     df = df[1:][:]
@@ -130,5 +94,5 @@ def load(s):
     print(calculate_time_matrices(final))
 
 
-
 load(10)
+
