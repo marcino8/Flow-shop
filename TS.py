@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 def initrandomswap_m(m):
     m2 = copy.copy(m)
-    for i in range(1, 300):
-        randomswap_m(m2)
+    for i in range(1, 500):
+        m2=randomswap_m(m2)
     return m2
 
 

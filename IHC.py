@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 def initrandomswap_m(m):
     m2 = copy.copy(m)
     for i in range(1, 5000):
-        randomswap_m(m2)
+        m2=randomswap_m(m2)
     return m2
 
 
@@ -38,9 +38,7 @@ def ihc(outside_iter, indide_iter, no_change_number, file_to_read, file_to_save)
             m2 = randomswap_m(solution)
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
-
             delta_time = t2 - t1
-            print(delta_time)
             if delta_time < 0:
                 solution = m2
             else:

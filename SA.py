@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 def initrandomswap_m(m):
     m2 = copy.copy(m)
     for i in range(1, 5000):
-        randomswap_m(m2)
+        m2=randomswap_m(m2)
     return m2
 
 
@@ -41,12 +41,9 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
             delta_time = t2 - t1
-
-            rand=np.random.random()
-            print(rand, np.exp((-1)*delta_time/t), delta_time)
             if delta_time < 0:
                 solution = m2
-            elif rand > np.exp((-1)*delta_time / t):
+            elif np.random.random() > np.exp((-1)*delta_time / t):
                 solution = m2
             else:
                 no_change += 1
