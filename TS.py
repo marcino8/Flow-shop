@@ -29,7 +29,8 @@ def swap(mt, x, y):
     return m
 
 
-def randomswap_m(m):
+def randomswap_m(mt):
+    m = copy.copy(mt)
     where_to_put, what_to_put = generate_swap_indexes_m(m)
     m[[where_to_put,what_to_put]] = m[[what_to_put,where_to_put]]
     return m

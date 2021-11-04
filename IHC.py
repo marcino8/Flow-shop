@@ -13,7 +13,8 @@ def initrandomswap_m(m):
     return m2
 
 
-def randomswap_m(m):
+def randomswap_m(m2):
+    m = copy.copy(m2)
     where_to_put, what_to_put = generate_swap_indexes_m(m)
     m[[where_to_put,what_to_put]] = m[[what_to_put,where_to_put]]
     return m
@@ -37,7 +38,9 @@ def ihc(outside_iter, indide_iter, no_change_number, file_to_read, file_to_save)
             m2 = randomswap_m(solution)
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
+
             delta_time = t2 - t1
+            print(delta_time)
             if delta_time < 0:
                 solution = m2
             else:
