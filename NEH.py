@@ -14,7 +14,7 @@ def sum_row(df):
 
 
 def load(isOrdered):
-    df = pd.read_csv("dane2.csv")
+    df = pd.read_csv("dane3.csv")
     if (isOrdered):
         df = df.iloc[:, 1:]
     df['Suma'] = sum_row(df)
@@ -42,7 +42,7 @@ def calculate_time(df):
                 previous_task = df_calc.at[row, df_calc.columns[itr - 1]]
                 df_calc.at[row, col] = max(previous_job, previous_task) + current
         itr = itr + 1
-    return df_calc.iloc[len(df_calc.index) - 1, len(df_calc.columns) - 2]
+    return df_calc.iloc[len(df_calc.index) -1, len(df_calc.columns) - 1]
 
 def hc(df, new_row):
     minczas = 99999999
@@ -75,4 +75,3 @@ def start(df):
 
 
 load(True)
-## DLA DRUGIEGO ZBIORU DANYCH 11451

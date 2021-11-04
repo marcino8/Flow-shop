@@ -10,25 +10,20 @@ def initrandomswap_m(m):
     return m2
 
 
-
-def randomswap_m(mt):
-    m=copy.copy(mt)
+def randomswap_m(m):
     where_to_put, what_to_put = generate_swap_indexes_m(m)
-    temp = m[where_to_put]
-    m[where_to_put] = m[what_to_put]
-    m[what_to_put] = temp
+    m[[where_to_put, what_to_put]] = m[[what_to_put, where_to_put]]
     return m
-
 
 
 def generate_swap_indexes_m(m):
     return [np.random.randint(1, len(m)), np.random.randint(1, len(m))]
 
 
-def initrandomswaps_m(n, m):
+def initrandomswaps_m(m, n):
     population = []
-    for i in range(1,n):
-        population.append(randomswap_m(m))
+    for i in range(1, n):
+        population.append(initrandomswap_m(m))
     return population
 
 
@@ -36,29 +31,53 @@ def lower_than_max(new, top_solutions):
     max_el = top_solutions[0]
     for solution in top_solutions:
         if solution[1] > max_el[1]:
-            max_el=solution
-    if new[1]<max_el[1]:
+            max_el = solution
+    if new[1] < max_el[1]:
         top_solutions.remove(max_el)
         top_solutions.append(new)
 
 
-
 def select_best_solutions(population, n):
-    top_solutions = []
-    for solution in population:
-        if len(top_solutions) < n/2:
-            top_solutions.append([solution, calculate_time_matrices(solution)])
-        else:
-            new = []
-            new.append(solution)
-            new.append(calculate_time_matrices(solution))
-            lower_than_max(new, top_solutions)
-    return top_solutions
+    population_with_times = []
+    suma = 0
+    for parent in population:
+        s = calculate_time_matrices(parent)
+        population_with_times.append([parent, s])
+        suma += s
+    for parent_and_time in population_with_times:
+        parent_and_time[1] = parent_and_time[1] / suma
+    sorted(population_with_times, key=lambda x: x[1])
+    poprzedni = 0
+    for parent_and_time in population_with_times:
+        temp = parent_and_time[1]
+        parent_and_time[1] = poprzedni + parent_and_time[1]
+        poprzedni += temp
+    d =[]
+    for parent_and_time in population_with_times:
+        d.append(parent_and_time[1])
+    d.reverse()
+    reversed_parent_and_time = []
+    for i in range(0, len(d)):
+        reversed_parent_and_time.append([population_with_times[i][0], d[i]])
+    reversed_parent_and_time.reverse()
+
+    selected_population = []
+    for i in range(1, int(n/2)):
+        parents=[]
+        for j in range(0,2):
+            for parent_and_time in reversed_parent_and_time:
+                if parent_and_time[1] < np.random.random():
+                    parents.append(parent_and_time[0])
+                    break
+        selected_population.append(parents)
+        print("APPENDED PARENTS WITH")
+        print(parents)
+    return selected_population
 
 
 def mutate_children(solutions, rswaps):
     for solution in solutions:
-        for i in range(1,rswaps):
+        for i in range(1, rswaps):
             solution = randomswap_m(solution)
     return solutions
 
@@ -71,19 +90,46 @@ def select_best_child(solutions):
     return min
 
 
-def produce_children():
-    pass
+def not_present_in_solution(m, target):
+    indexes = m[0,:]
+    for i in indexes:
+        if i==target:
+            return False
 
 
-def ga(m,n):
+def produce_children1(parents):
+    first = int(len(parents[0][0])/3)
+    last = int(2*len(parents[0][0])/3)
+    for pair in parents:
+        child1 = pair[0][first:last,:]
+        for i in range(last, len(parents[0][0])):
+            if not_present_in_solution(child1,pair[1][i,0]):
+                np.vstack((child1, pair[1][i]))
+        for i in range(0, last):
+            if not_present_in_solution(child1,pair[1][i,0]):
+                np.vstack((pair[1][i], child1))
+        child2 = pair[1][first:last, :]
+        for i in range(last, len(parents[0][0])):
+            if not_present_in_solution(child2, pair[0][i,0]):
+                np.vstack((child2, pair[0][i]))
+        for i in range(0, last):
+            if not_present_in_solution(child2, pair[0][i,0]):
+                np.vstack((pair[0][i], child2))
+
+
+
+
+def ga(m, n):
     population = initrandomswaps_m(m, n)
-    epoch=1
-    while epoch<1000000:
-        select_best_solutions(population,n)
-        produce_children()
+    epoch = 1
+    while epoch < 1000:
+        parents=select_best_solutions(population, n)
+        print("PARENTS")
+        print(parents)
+        produce_children1()
         population = mutate_children()
         select_best_child()
-    return solution
+    return 0
 
 
 def calculate_time_matrices(matrix):
@@ -109,4 +155,5 @@ def load():
     print(calculate_time_matrices(final))
 
 
-load()
+matrix = np.random.randint(1, 78, (5, 5))
+ga(matrix, 6)

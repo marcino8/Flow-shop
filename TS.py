@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import copy
+import matplotlib.pyplot as plt
 
 
 def initrandomswap_m(m):
@@ -11,7 +12,7 @@ def initrandomswap_m(m):
 
 
 def calculate_moves2(m, tl):
-    move = [0, 0, 0]
+    move = [0, 0, 99999]
     for i in range(1, len(m)):
         for j in range(i + 1, len(m)):
             if is_not_present_in_tl(tl, i, j):
@@ -24,22 +25,18 @@ def calculate_moves2(m, tl):
 
 def swap(mt, x, y):
     m = copy.copy(mt)
-    temp = m[x]
-    m[x] = m[y]
-    m[y] = temp
+    m[[x,y]] = m[[y,x]]
     return m
 
 
 def randomswap_m(m):
     where_to_put, what_to_put = generate_swap_indexes_m(m)
-    temp = m[where_to_put]
-    m[where_to_put] = m[what_to_put]
-    m[what_to_put] = temp
+    m[[where_to_put,what_to_put]] = m[[what_to_put,where_to_put]]
     return m
 
 
 def generate_swap_indexes_m(m):
-    return [np.random.randint(1, len(m)), np.random.randint(1, len(m))]
+    return [np.random.randint(0, len(m)), np.random.randint(0, len(m))]
 
 
 def is_not_present_in_tl(tl, i, j):
@@ -59,17 +56,26 @@ def ts(s, inside_iter, file_to_read, file_to_save):
     m = m[1:][:]
     tabu_list = np.zeros((len(m), len(m)))
     solution = initrandomswap_m(m)
+    times = []
     for i in range(1, inside_iter):
         start = time.time()
         print(i)
-        print(calculate_time_matrices(solution))
+        tm = calculate_time_matrices(solution)
+        times.append(tm)
+        print(tm)
         move = calculate_moves2(solution, tabu_list)
+        print(move)
         solution = swap(solution, move[0], move[1])
         tabu_list = update_tabu_list(tabu_list)
         tabu_list[move[0], move[1]] = s
         print("time per inside iter :",time.time() - start)
     np.savetxt(file_to_save, solution, delimiter=",")
     print("FINAL FOR ", s, "BLOCKS ", inside_iter, "INSIDE ITERATIONS ", "SAVED TO ", file_to_save)
+    plt.plot(times)
+    plt.ylabel("czas")
+    plt.show()
+    save = file_to_save+".jpeg"
+    plt.savefig(save)
 
 def calculate_time_matrices(matrix):
 
@@ -87,5 +93,15 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
+
+
+
+# ts(5,1000, 'dane2.csv','dane2_ts_2_500.csv')
 ts(5,100, 'dane2.csv','dane2_ts_5_100.csv')
+ts(10,100, 'dane2.csv','dane2_ts_10_100.csv')
+ts(20,100, 'dane2.csv','dane2_ts_20_100.csv')
+ts(5,500, 'dane2.csv','dane2_ts_5_500.csv')
+ts(5,200, 'dane2.csv','dane2_ts_5_200.csv')
+
+
 
