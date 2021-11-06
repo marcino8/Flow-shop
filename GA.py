@@ -1,7 +1,7 @@
 import copy
 from numpy import genfromtxt
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def initrandomswap_m(m):
     """
@@ -137,10 +137,10 @@ def not_present_in_solution(m, target):
             return False
 
 
-def cross_indexes(tasks1, tasks2):
+def cross_indexes(tasks1, tasks2, div1, div2):
     tasks = []
-    start = 34
-    end = 70
+    start = div1
+    end = div2
     for i in range(start, end):
         tasks.append(tasks1[i])
     for i in range(end, len(tasks1)):
@@ -172,10 +172,10 @@ def build_from_indexes(m, idx):
     return mat
 
 
-def produce_children1(parents):
+def produce_children1(parents, div1, div2):
     new_population = []
     for pair in parents:
-        ch_indx1, ch_indx2 = cross_indexes(pair[0][:, 0], pair[1][:, 0])
+        ch_indx1, ch_indx2 = cross_indexes(pair[0][:, 0], pair[1][:, 0], div1, div2)
         child1 = build_from_indexes(pair[0], ch_indx1)
         child2 = build_from_indexes(pair[0], ch_indx2)
         new_population.append(child1)
@@ -183,23 +183,50 @@ def produce_children1(parents):
     return new_population
 
 
-def ga(n):
-    m = genfromtxt('dane1.csv', delimiter=',')
+def ploted(x, y1, y2, ylab, xlab, y1lab, y2lab, title, savename):
+    plt.plot(x, y1, label=y1lab)
+    plt.plot(x, y2, label=y2lab)
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
+    plt.title(title)
+    plt.legend()
+    plt.savefig(savename+"wykres.jpeg")
+
+
+def ga(population_size, iterations, mutations,  div1, div2, file_to_read, file_to_save):
+    m = genfromtxt(file_to_read, delimiter=',')
     m = m[1:][:]
-    population = initrandomswaps_m(m, n)
+    population = initrandomswaps_m(m, population_size)
     best = select_best_child(population)
     print(best, calculate_time_matrices(best))
     epoch = 1
-    while epoch < 1000:
-        parents = select_best_solutions(population, n)
-        children = produce_children1(parents)
-        population = mutate_children(children, 2)
+    epochs = np.linspace(1, population_size, population_size)
+    times1 = []
+    times2 = []
+    while epoch <= iterations:
+        parents = select_best_solutions(population, population_size)
+        children = produce_children1(parents, div1, div2)
+        population = mutate_children(children, mutations)
         pretender = select_best_child(population)
-        if calculate_time_matrices(pretender) < calculate_time_matrices(best):
+        pr_time = calculate_time_matrices(pretender)
+        best_time = calculate_time_matrices(best)
+        if pr_time < best_time:
             best = pretender
-        print(calculate_time_matrices(best), epoch)
+        print(best_time, epoch)
+        times1.append(pr_time)
+        times2.append(best_time)
         epoch+=1
-    np.savetxt("gacos.csv", best, delimiter=",")
+    np.savetxt(file_to_save, best, delimiter=",")
+    ploted(
+           x=epochs,
+           y1=times1,
+           y2=times2,
+           xlab="TIME",
+           ylab="EPOCH",
+           y1lab="pretender times for "+str(population_size)+"popualtion",
+           y2lab="best unit times for "+str(population_size)+"popualtion",
+           title="GA",
+           savename=file_to_save)
 
 
 def calculate_time_matrices(matrix):
@@ -217,12 +244,4 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-def load():
-    df = genfromtxt('dane2.csv', delimiter=',')
-    df = df[1:][:]
-    final = ga(df)
-    np.savetxt("dane2_sa099_092.csv", final, delimiter=",")
-    print(calculate_time_matrices(final))
-
-
-ga(100)
+ga(100, 100, 4, 50, 100, "dane2.csv", "dane2_ga_100_100_4_50_100.csv")
