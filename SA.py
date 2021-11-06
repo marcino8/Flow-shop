@@ -119,7 +119,7 @@ def calculate_time_matrices(matrix):
             np matrix object
         :return:
             calculated time for given tasks positioning in flow shop problem
-        """
+    """
     m = copy.copy(matrix[:, 1:])
     for row in range(0, len(m)):
         for el in range(0, len(m[0])):
