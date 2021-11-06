@@ -127,4 +127,3 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-ihc(200, 10000, 500, "dane1.csv", "dane1_ihc_200_10000_500.csv")

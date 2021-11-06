@@ -4,132 +4,202 @@ import numpy as np
 
 
 def initrandomswap_m(m):
+    """
+        :param m:
+            np matrix obj, to randomly swap its rows
+        :return:
+            np matrix obj, with randomly swapped rows 5000 times
+    """
     m2 = copy.copy(m)
-    for i in range(1, 5000):
+    for i in range(1, 500):
         randomswap_m(m2)
     return m2
 
 
 def randomswap_m(m):
+    """
+        :param m:
+            np matrix obj, matrix to swap 2 random rows
+        :return:
+            np matrix obj, m2 with swapped two random rows
+    """
     where_to_put, what_to_put = generate_swap_indexes_m(m)
     m[[where_to_put, what_to_put]] = m[[what_to_put, where_to_put]]
     return m
 
 
 def generate_swap_indexes_m(m):
+    """
+        :param m:
+            obj to get ist lengths
+        :return:
+            List of 2 ints, being 2 random integer numbers from 0 to length of m exclusive
+    """
     return [np.random.randint(1, len(m)), np.random.randint(1, len(m))]
 
 
 def initrandomswaps_m(m, n):
+    """
+    Initiates population size n using initrandomswap on m
+    """
     population = []
-    for i in range(1, n):
+    for i in range(0, n):
         population.append(initrandomswap_m(m))
     return population
 
 
-def lower_than_max(new, top_solutions):
-    max_el = top_solutions[0]
-    for solution in top_solutions:
-        if solution[1] > max_el[1]:
-            max_el = solution
-    if new[1] < max_el[1]:
-        top_solutions.remove(max_el)
-        top_solutions.append(new)
-
-
 def select_best_solutions(population, n):
+    """
+    Select pairs to cross from population
+    The parents are beeing chosen according to dist. function intervals.
+    :param population:
+        list of np matrix obj, list from which to chose matrices to cross
+    :param n:
+        int, size of population
+    :return:
+        n/2 element list of 2 np matrixes,
+        meaning returns n/2 pairs ready to be crossed
+    """
     population_with_times = []
     suma = 0
+    # calculate times for everyone in population
+    ind = 0
     for parent in population:
         s = calculate_time_matrices(parent)
-        population_with_times.append([parent, s])
+        population_with_times.append([ind, s])
         suma += s
+        ind += 1
+    # divide time by sum of all times to get the probablilities
     for parent_and_time in population_with_times:
         parent_and_time[1] = parent_and_time[1] / suma
+    # sort population and times by probablilities
     sorted(population_with_times, key=lambda x: x[1])
     poprzedni = 0
+    # change probabilities to distribution
     for parent_and_time in population_with_times:
         temp = parent_and_time[1]
         parent_and_time[1] = poprzedni + parent_and_time[1]
         poprzedni += temp
-    d =[]
+    # reverse distribution (the lower the higher change to pick)
+    d = []
     for parent_and_time in population_with_times:
         d.append(parent_and_time[1])
     d.reverse()
+    # replace distribution with the reversed one
     reversed_parent_and_time = []
     for i in range(0, len(d)):
         reversed_parent_and_time.append([population_with_times[i][0], d[i]])
     reversed_parent_and_time.reverse()
-
+    # select pairs from population according to population size and distribution intervals
     selected_population = []
-    for i in range(1, int(n/2)):
-        parents=[]
-        for j in range(0,2):
+    for i in range(1, int(n / 2) + 1):
+        parents = []
+        while len(parents) != 2:
+            random = np.random.random()
             for parent_and_time in reversed_parent_and_time:
-                if parent_and_time[1] < np.random.random():
+                if parent_and_time[1] < random and parent_and_time[0] not in parents:
                     parents.append(parent_and_time[0])
                     break
-        selected_population.append(parents)
-        print("APPENDED PARENTS WITH")
-        print(parents)
-    return selected_population
+            selected_population.append(parents)
+    all_pairs = []
+    for p in selected_population:
+        all_pairs.append([population[p[0]], population[p[1]]])
+    return all_pairs
 
 
 def mutate_children(solutions, rswaps):
+    """
+    Mutate every matrix in population, meaning make rswaps number of random
+    swaps in every matrix in solutions
+    """
     for solution in solutions:
-        for i in range(1, rswaps):
+        for i in range(0, rswaps):
             solution = randomswap_m(solution)
     return solutions
 
 
 def select_best_child(solutions):
-    min = solutions[0]
+    """
+    Select best matrix from current population
+    """
+    min = calculate_time_matrices(solutions[0])
+    mat = solutions[0]
     for solution in solutions:
-        if solution[1] < min[1]:
-            min = solution
-    return min
+        if calculate_time_matrices(solution) < min:
+            mat = solution
+    return mat
 
 
 def not_present_in_solution(m, target):
-    indexes = m[0,:]
+    indexes = m[0, :]
     for i in indexes:
-        if i==target:
+        if i == target:
             return False
 
 
+def cross_indexes(tasks1, tasks2):
+    tasks = []
+    start = 34
+    end = 70
+    for i in range(start, end):
+        tasks.append(tasks1[i])
+    for i in range(end, len(tasks1)):
+        if tasks2[i] not in tasks:
+            tasks.append(tasks2[i])
+    for i in range(0, len(tasks1)):
+        if tasks2[i] not in tasks:
+            tasks.append(tasks2[i])
+    tasks3 = []
+    for i in range(start, end):
+        tasks3.append(tasks2[i])
+    for i in range(end, len(tasks1)):
+        if tasks1[i] not in tasks3:
+            tasks3.append(tasks1[i])
+    for i in range(0, len(tasks1)):
+        if tasks1[i] not in tasks3:
+            tasks3.append(tasks1[i])
+    return tasks3, tasks
+
+
+def build_from_indexes(m, idx):
+    for row in m:
+        if row[0] == idx[0]:
+            mat = row
+    for i in idx[1:]:
+        for row in m:
+            if row[0] == i:
+                mat = np.vstack((mat, row))
+    return mat
+
+
 def produce_children1(parents):
-    first = int(len(parents[0][0])/3)
-    last = int(2*len(parents[0][0])/3)
+    new_population = []
     for pair in parents:
-        child1 = pair[0][first:last,:]
-        for i in range(last, len(parents[0][0])):
-            if not_present_in_solution(child1,pair[1][i,0]):
-                np.vstack((child1, pair[1][i]))
-        for i in range(0, last):
-            if not_present_in_solution(child1,pair[1][i,0]):
-                np.vstack((pair[1][i], child1))
-        child2 = pair[1][first:last, :]
-        for i in range(last, len(parents[0][0])):
-            if not_present_in_solution(child2, pair[0][i,0]):
-                np.vstack((child2, pair[0][i]))
-        for i in range(0, last):
-            if not_present_in_solution(child2, pair[0][i,0]):
-                np.vstack((pair[0][i], child2))
+        ch_indx1, ch_indx2 = cross_indexes(pair[0][:, 0], pair[1][:, 0])
+        child1 = build_from_indexes(pair[0], ch_indx1)
+        child2 = build_from_indexes(pair[0], ch_indx2)
+        new_population.append(child1)
+        new_population.append(child2)
+    return new_population
 
 
-
-
-def ga(m, n):
+def ga(n):
+    m = genfromtxt('dane1.csv', delimiter=',')
+    m = m[1:][:]
     population = initrandomswaps_m(m, n)
+    best = select_best_child(population)
+    print(best, calculate_time_matrices(best))
     epoch = 1
     while epoch < 1000:
-        parents=select_best_solutions(population, n)
-        print("PARENTS")
-        print(parents)
-        produce_children1()
-        population = mutate_children()
-        select_best_child()
-    return 0
+        parents = select_best_solutions(population, n)
+        children = produce_children1(parents)
+        population = mutate_children(children, 2)
+        pretender = select_best_child(population)
+        if calculate_time_matrices(pretender) < calculate_time_matrices(best):
+            best = pretender
+        print(calculate_time_matrices(best), epoch)
+        epoch+=1
+    np.savetxt("gacos.csv", best, delimiter=",")
 
 
 def calculate_time_matrices(matrix):
@@ -150,10 +220,9 @@ def calculate_time_matrices(matrix):
 def load():
     df = genfromtxt('dane2.csv', delimiter=',')
     df = df[1:][:]
-    final = sa(df)
+    final = ga(df)
     np.savetxt("dane2_sa099_092.csv", final, delimiter=",")
     print(calculate_time_matrices(final))
 
 
-matrix = np.random.randint(1, 78, (5, 5))
-ga(matrix, 6)
+ga(100)
