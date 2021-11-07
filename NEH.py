@@ -10,6 +10,7 @@ def sum_row(m):
         List of sums for every row in given martix
     """
     sums = []
+    m=m[:,1:]
     for row in m:
         sums.append([sum(row)])
     return sums
@@ -28,6 +29,7 @@ def load(file_to_read, file_to_save):
     matrix = np.genfromtxt(file_to_read, delimiter=',')
     # transform matrix
     matrix = matrix[1:][:]
+    print(matrix)
     matrix = np.append(matrix, sum_row(matrix), axis=1)
     matrix = matrix[matrix[:, -1].argsort()]
     matrix = np.flip(matrix, axis=0)
@@ -40,8 +42,9 @@ def load(file_to_read, file_to_save):
     else:
         start = first
     # start neh
-    for i in range(3, len(matrix)):
+    for i in range(2, len(matrix)):
         start = neh(start, matrix[i])
+        print(calculate_time_matrices(start))
     np.savetxt(file_to_save, start, delimiter=",")
 
 
@@ -103,6 +106,4 @@ def insert_row(m, row, row_index):
     return m
 
 
-load("dane1.csv", "dane1_neh.csv")
-load("dane2.csv", "dane2_neh.csv")
-load("dane3.csv", "dane3_neh.csv")
+load("dane1.csv", "dane2_neh.csv")
