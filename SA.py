@@ -15,6 +15,10 @@ def initrandomswap_m(m):
     m2 = copy.copy(m)
     for i in range(1, 5000):
         m2 = randomswap_m(m2)
+    for i in range(1, 5000):
+        m2 = randomswap_m2(m2)
+    for i in range(1, 5000):
+        m2 = randomswap_m3(m2)
     return m2
 
 
@@ -40,6 +44,45 @@ def randomswap_m(m2):
     m = copy.copy(m2)
     where_to_put, what_to_put = generate_swap_indexes_m(m)
     m[[where_to_put, what_to_put]] = m[[what_to_put, where_to_put]]
+    return m
+
+
+def randomswap_m2(m2):
+    """
+    :param m2:
+        np matrix obj, matrix to swap 2 random rows
+    :return:
+        np matrix obj, m2 with swapped two random rows
+    """
+    m = copy.copy(m2)
+    x, y = 0, 0
+    where_to_put, what_to_put = generate_swap_indexes_m(m)
+    if what_to_put >= where_to_put:
+        x = where_to_put
+        y = what_to_put
+    else:
+        x = what_to_put
+        y = where_to_put
+    reverse = m[x:y, :]
+    reverse = np.flip(reverse, axis=0)
+    m[x:y, :] = reverse
+    return m
+
+
+def randomswap_m3(m2):
+    """
+    :param m2:
+        np matrix obj, matrix to swap 2 random rows
+    :return:
+        np matrix obj, m2 with swapped two random rows
+    """
+    m = copy.copy(m2)
+    rnd = np.random.randint(4,22)
+    interval = np.random.randint(2, rnd)
+    middle = np.random.randint(interval, len(m) - interval - 1)
+    temp = copy.copy(m[(middle - interval):middle, :])
+    m[(middle - interval):middle, :] = m[(middle + 1):(interval + middle + 1), :]
+    m[(middle + 1):(interval + middle + 1), :] = temp
     return m
 
 
@@ -74,10 +117,11 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
         Saves matrix calculated by SA algorithm
     """
     m = genfromtxt(file_to_read, delimiter=',')
-    m = m[1:][:]
+    #m = m[1:][:]
     print(calculate_time_matrices(m))
     t = start_T
     solution = initrandomswap_m(m)
+    solution = m
     times = []
     while t > 0.00001:
         start = time.time()
@@ -86,7 +130,13 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
         no_change = 0
         times.append(tm)
         for i in range(1, inside_iter):
-            m2 = randomswap_m(solution)
+            rnd = np.random.randint(1, 4)
+            if rnd == 1:
+                m2 = randomswap_m(solution)
+            elif rnd == 2:
+                m2 = randomswap_m2(solution)
+            else:
+                m2 = randomswap_m3(solution)
             t1 = calculate_time_matrices(solution)
             t2 = calculate_time_matrices(m2)
             delta_time = t2 - t1
@@ -134,5 +184,8 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
+
 # sample use
-sa(0.9, 0.75, False, 10000, 1000, 'dane1.csv', 'dane1_sa.csv')
+sa(1, 0.9, False, 20000, 10009, "dane2_sa_STERIDES.csv", 'dane2_bbs.csv')
+
+
