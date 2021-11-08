@@ -17,9 +17,11 @@ def initrandomswap_m(m):
     return m2
 
 
-def calculate_moves2(m, tl):
+def calculate_moves2(m, tl, zeros):
     """
     This is used to calculate every possible swap of 2 rows, and find the best swap
+    :param zeros:
+        bool, used to specify allowing zero time change swaps
     :param m:
         np matrix obj on which all possible swaps of 2 different rows will be made
     :param tl:
@@ -34,8 +36,12 @@ def calculate_moves2(m, tl):
             if is_not_present_in_tl(tl, i, j):
                 m2 = swap(m, i, j)
                 delta_time = calculate_time_matrices(m2) - calculate_time_matrices(m)
-                if delta_time < move[2] and delta_time != 0:
-                    move = [i, j, delta_time]
+                if zeros:
+                    if delta_time < move[2]:
+                        move = [i, j, delta_time]
+                else:
+                    if delta_time < move[2] and delta_time != 0:
+                        move = [i, j, delta_time]
     return move
 
 
@@ -105,8 +111,14 @@ def update_tabu_list(tl):
     return tl
 
 
-def ts(s, inside_iter, file_to_read, file_to_save):
+def ts(s, inside_iter, file_to_read, file_to_save, allow_zeros=False, headers=False, init_swap=False):
     """
+    :param allow_zeros:
+        bool, if true, allows TS to make swaps that result in no change in overall time
+    :param init_swap:
+        bool, if true, swaps loaded from file solution
+    :param headers:
+        bool, if true, deletes headers
     :param s:
         int, how many iterations are swaps blocked
     :param inside_iter:
@@ -119,10 +131,14 @@ def ts(s, inside_iter, file_to_read, file_to_save):
         Saves matrix calculated by TS algorithm
     """
     m = np.genfromtxt(file_to_read, delimiter=',')
-    m = m[1:][:]
+    if headers:
+        m = m[1:][:]
+    if init_swap:
+        solution = initrandomswap_m(m)
+    else:
+        solution = m
     print(calculate_time_matrices(m))
     tabu_list = np.zeros((len(m), len(m)))
-    solution = m
     times = []
     for i in range(1, inside_iter):
         start = time.time()
@@ -130,7 +146,7 @@ def ts(s, inside_iter, file_to_read, file_to_save):
         tm = calculate_time_matrices(solution)
         times.append(tm)
         print(tm)
-        move = calculate_moves2(solution, tabu_list)
+        move = calculate_moves2(solution, tabu_list, allow_zeros)
         print(move)
         solution = swap(solution, move[0], move[1])
         tabu_list = update_tabu_list(tabu_list)
@@ -165,4 +181,11 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-ts(10, 100, 'dane1 tries/dane1_sa.csv', 'dane1ts_10_100.csv')
+# sample use
+ts(s=12,
+   inside_iter=100,
+   file_to_read="dane3.csv",
+   file_to_save='dane3TS.csv',
+   allow_zeros=True,
+   headers=True,
+   init_swap=True)

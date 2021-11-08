@@ -55,7 +55,6 @@ def randomswap_m2(m2):
         np matrix obj, m2 with swapped two random rows
     """
     m = copy.copy(m2)
-    x, y = 0, 0
     where_to_put, what_to_put = generate_swap_indexes_m(m)
     if what_to_put >= where_to_put:
         x = where_to_put
@@ -77,7 +76,7 @@ def randomswap_m3(m2):
         np matrix obj, m2 with swapped two random rows
     """
     m = copy.copy(m2)
-    rnd = np.random.randint(4,22)
+    rnd = np.random.randint(4, 8)
     interval = np.random.randint(2, rnd)
     middle = np.random.randint(interval, len(m) - interval - 1)
     temp = copy.copy(m[(middle - interval):middle, :])
@@ -96,8 +95,13 @@ def generate_swap_indexes_m(m):
     return [np.random.randint(0, len(m)), np.random.randint(0, len(m))]
 
 
-def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_to_save):
+def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_to_save,
+       headers=False, init_swap=False):
     """
+    :param init_swap:
+        bool, if true, swaps loaded from file solution
+    :param headers:
+        bool, if true, deletes headers
     :param start_T:
         float, start temperature
     :param red_T:
@@ -117,11 +121,14 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
         Saves matrix calculated by SA algorithm
     """
     m = genfromtxt(file_to_read, delimiter=',')
-    #m = m[1:][:]
+    if headers:
+        m = m[1:][:]
     print(calculate_time_matrices(m))
     t = start_T
-    solution = initrandomswap_m(m)
-    solution = m
+    if init_swap:
+        solution = initrandomswap_m(m)
+    else:
+        solution = m
     times = []
     while t > 0.00001:
         start = time.time()
@@ -163,6 +170,20 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
     plt.savefig(save)
 
 
+def ploted(x, y1, y2, ylab, xlab, y1lab, y2lab, title, savename):
+    """
+    Method plots 2 Y on same X axis and saves it to jpeg file
+    :return:
+    """
+    plt.plot(x, y1, label=y1lab)
+    plt.plot(x, y2, label=y2lab)
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
+    plt.title(title)
+    plt.legend()
+    plt.savefig(savename + "wykres.jpeg")
+
+
 def calculate_time_matrices(matrix):
     """
         :param matrix:
@@ -184,8 +205,13 @@ def calculate_time_matrices(matrix):
     return m[len(m) - 1][len(m[0]) - 1]
 
 
-
 # sample use
-sa(1, 0.9, False, 20000, 10009, "dane2_sa_STERIDES.csv", 'dane2_bbs.csv')
-
-
+sa(start_T=1,
+   red_T=0.75,
+   geom=False,
+   inside_iter=50000,
+   no_change_number=99999,
+   file_to_read="dane1.csv",
+   file_to_save='dane1SA.csv',
+   headers=True,
+   init_swap=True)
