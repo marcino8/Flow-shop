@@ -1,7 +1,6 @@
 import time
 from numpy import genfromtxt
 import numpy as np
-import matplotlib.pyplot as plt
 import Calculations as Calc
 
 
@@ -40,7 +39,11 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
     else:
         solution = m
     times = []
-    while t > 0.00001:
+    if geom:
+        stop = 0.01
+    else:
+        stop = 0.00001
+    while t > stop:
         start = time.time()
         tm = Calc.calculate_time_matrices(solution)
         print("TEMPERATURE", t, tm)
@@ -59,8 +62,10 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
             delta_time = t2 - t1
             if delta_time < 0:
                 solution = m2
+                no_change = 0
             elif np.random.random() < np.exp((-1) * delta_time / t):
                 solution = m2
+                no_change = 0
             else:
                 no_change += 1
             if no_change > no_change_number:
@@ -74,19 +79,5 @@ def sa(start_T, red_T, geom, inside_iter, no_change_number, file_to_read, file_t
     np.savetxt(file_to_save, solution, delimiter=",")
     print("FINAL FOR ", t, "T START ", inside_iter, "INSIDE ITERATIONS ", red_T, "REDUCTION ", "SAVED TO ",
           file_to_save)
-    plt.plot(times)
-    plt.ylabel("czas")
-    save = file_to_save + ".jpeg"
-    plt.savefig(save)
+    return times
 
-
-# sample use
-sa(start_T=1,
-   red_T=0.75,
-   geom=False,
-   inside_iter=50000,
-   no_change_number=99999,
-   file_to_read="dane1.csv",
-   file_to_save='dane1SA.csv',
-   headers=True,
-   init_swap=True)

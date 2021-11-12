@@ -11,8 +11,12 @@ def initrandomswap_m(m):
             np matrix obj, with randomly swapped rows 5000 times
     """
     m2 = copy.copy(m)
-    for i in range(1, 5000):
+    for i in range(1, 500):
         m2 = randomswap_m(m2)
+    for i in range(1, 500):
+        m2 = randomswap_m2(m2)
+    for i in range(1, 500):
+        m2 = randomswap_m3(m2)
     return m2
 
 
@@ -118,6 +122,18 @@ def ploted(x, y1, y2, ylab, xlab, y1lab, y2lab, title, savename):
     plt.title(title)
     plt.legend()
     plt.savefig(savename + "wykres.jpeg")
+
+
+def plotedGA(x, y1, y2, y3, ylab, xlab, y1lab, y2lab, y3lab, title, savename):
+    plt.plot(x, y1, label=y1lab)
+    plt.plot(x, y2, label=y2lab)
+    plt.plot(x, y3, label=y3lab)
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
+    plt.title(title)
+    plt.legend()
+    plt.savefig(savename + "wykres.jpeg")
+    plt.clf()
 
 
 def calculate_moves2(m, tl, zeros):
@@ -250,7 +266,7 @@ def select_best_solutions(population, n):
         while len(parents) != 2:
             random = np.random.random()
             for parent_and_time in reversed_parent_and_time:
-                if parent_and_time[1] < random and parent_and_time[0] not in parents:
+                if parent_and_time[1] > random and parent_and_time[0] not in parents:
                     parents.append(parent_and_time[0])
                     break
             selected_population.append(parents)
@@ -283,38 +299,133 @@ def select_best_child(solutions):
     return mat
 
 
-def not_present_in_solution(m, target):
-    indexes = m[0, :]
-    for i in indexes:
-        if i == target:
-            return False
-
-
 def cross_indexes(tasks1, tasks2, div1, div2):
-    tasks = []
+    """
+    OX crossing
+    :param tasks1:
+        parent 1
+    :param tasks2:
+        parent 2
+    :param div1:
+        crossing point 1
+    :param div2:
+        crossing point 2
+    :return:
+        indexes of children crossed by OX
+    """
+    tasks_m = []
+    tasks_s = []
+    tasks_e = []
     start = div1
     end = div2
     for i in range(start, end):
-        tasks.append(tasks1[i])
+        tasks_m.append(tasks1[i])
     for i in range(end, len(tasks1)):
-        if tasks2[i] not in tasks:
-            tasks.append(tasks2[i])
+        if tasks2[i] not in tasks_m and tasks2[i] not in tasks_s and tasks2[i] not in tasks_e:
+            tasks_e.append(tasks2[i])
     for i in range(0, len(tasks1)):
-        if tasks2[i] not in tasks:
-            tasks.append(tasks2[i])
-    tasks3 = []
+        if tasks2[i] not in tasks_m and tasks2[i] not in tasks_s and tasks2[i] not in tasks_e:
+            tasks_s.append(tasks2[i])
+    tasks_rdy1 = tasks_s + tasks_m + tasks_e
+    tasks_m = []
+    tasks_s = []
+    tasks_e = []
     for i in range(start, end):
-        tasks3.append(tasks2[i])
+        tasks_m.append(tasks2[i])
+    for i in range(end, len(tasks2)):
+        if tasks1[i] not in tasks_m and tasks1[i] not in tasks_s and tasks1[i] not in tasks_e:
+            tasks_e.append(tasks1[i])
+    for i in range(0, len(tasks2)):
+        if tasks1[i] not in tasks_m and tasks1[i] not in tasks_s and tasks1[i] not in tasks_e:
+            tasks_s.append(tasks1[i])
+    tasks_rdy2 = tasks_s + tasks_m + tasks_e
+    return tasks_rdy1, tasks_rdy2
+
+
+def cross_indexes2(tasks1, tasks2, div1, div2):
+    """
+    PMX crossing
+    :param tasks1:
+        parent1
+    :param tasks2:
+        parent2
+    :param div1:
+        cross point 1
+    :param div2:
+        cross point 2
+    :return:
+        indexes of children crossed by PMX
+    """
+    tasks_m = []
+    tasks_s = []
+    tasks_e = []
+    start = div1
+    end = div2
+    swap_map = []
+    for i in range(start, end):
+        tasks_m.append(tasks1[i])
+        swap_map.append([tasks1[i], tasks2[i]])
+    for i in range(0, start):
+        task = tasks2[i]
+        while task in tasks_e or task in tasks_s or task in tasks_m:
+            for swapp in swap_map:
+                if swapp[0] == task:
+                    task = swapp[1]
+                    break
+        tasks_s.append(task)
     for i in range(end, len(tasks1)):
-        if tasks1[i] not in tasks3:
-            tasks3.append(tasks1[i])
-    for i in range(0, len(tasks1)):
-        if tasks1[i] not in tasks3:
-            tasks3.append(tasks1[i])
-    return tasks3, tasks
+        task = tasks2[i]
+        while task in tasks_e or task in tasks_s or task in tasks_m:
+            for swapp in swap_map:
+                if swapp[0] == task:
+                    task = swapp[1]
+                    break
+        tasks_e.append(task)
+
+    tasks_rdy1 = tasks_s + tasks_m + tasks_e
+
+    tasks_m = []
+    tasks_s = []
+    tasks_e = []
+    start = div1
+    end = div2
+    swap_map = []
+    for i in range(start, end):
+        tasks_m.append(tasks2[i])
+        swap_map.append([tasks2[i], tasks1[i]])
+    for i in range(0, start):
+        task = tasks1[i]
+        while task in tasks_e or task in tasks_s or task in tasks_m:
+            for swapp in swap_map:
+                if swapp[0] == task:
+                    task = swapp[1]
+                    break
+        tasks_s.append(task)
+    for i in range(end, len(tasks1)):
+        task = tasks1[i]
+        while task in tasks_e or task in tasks_s or task in tasks_m:
+            for swapp in swap_map:
+                if swapp[0] == task:
+                    task = swapp[1]
+                    break
+        tasks_e.append(task)
+    tasks_rdy2 = tasks_s + tasks_m + tasks_e
+
+    print(tasks_rdy1)
+    print(tasks_rdy2)
+    return tasks_rdy1, tasks_rdy2
 
 
 def build_from_indexes(m, idx):
+    """
+    Builds matrix by indexes in first row
+    :param m:
+        matrix
+    :param idx:
+        indexes
+    :return:
+        matrix built from given indexes
+    """
     for row in m:
         if row[0] == idx[0]:
             mat = row
@@ -325,15 +436,32 @@ def build_from_indexes(m, idx):
     return mat
 
 
-def produce_children1(parents, div1, div2):
+def produce_children1(parents, div1, div2, cross):
+    """
+    Cross two parents to obtain 2 children
+    :param parents:
+        list of two matrices
+    :param div1:
+        cross point 1
+    :param div2:
+        cross point 2
+    :param cross:
+        0 - OX, 1 - PMX crossing
+    :return:
+        2 new matrices obtained by crossing 2 given matrices
+    """
     new_population = []
     for pair in parents:
-        ch_indx1, ch_indx2 = cross_indexes(pair[0][:, 0], pair[1][:, 0], div1, div2)
+        if cross == 0:
+            ch_indx1, ch_indx2 = cross_indexes(pair[0][:, 0], pair[1][:, 0], div1, div2)
+        else:
+            ch_indx1, ch_indx2 = cross_indexes2(pair[0][:, 0], pair[1][:, 0], div1, div2)
         child1 = build_from_indexes(pair[0], ch_indx1)
         child2 = build_from_indexes(pair[0], ch_indx2)
         new_population.append(child1)
         new_population.append(child2)
     return new_population
+
 
 def insert_row(m, row, row_index):
     """
@@ -348,6 +476,7 @@ def insert_row(m, row, row_index):
     """
     m = np.insert(m, row_index, row, 0)
     return m
+
 
 def calculate_time_matrices_neh(matrix):
     """
@@ -378,7 +507,9 @@ def sum_row(m):
         List of sums for every row in given martix
     """
     sums = []
-    m=m[:,1:]
+    m = m[:, 1:]
     for row in m:
         sums.append([sum(row)])
     return sums
+
+

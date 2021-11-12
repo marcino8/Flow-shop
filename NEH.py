@@ -56,4 +56,3 @@ def neh(m, new_row):
     return df2
 
 
-load("dane1.csv", "dane2_neh.csv")

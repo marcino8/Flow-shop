@@ -1,6 +1,5 @@
 import time
 import numpy as np
-import matplotlib.pyplot as plt
 import Calculations as Calc
 
 
@@ -33,6 +32,7 @@ def ts(s, inside_iter, file_to_read, file_to_save, allow_zeros=False, headers=Fa
     print(Calc.calculate_time_matrices(m))
     tabu_list = np.zeros((len(m), len(m)))
     times = []
+    no_change = 0
     for i in range(1, inside_iter):
         start = time.time()
         print(i)
@@ -42,22 +42,21 @@ def ts(s, inside_iter, file_to_read, file_to_save, allow_zeros=False, headers=Fa
         move = Calc.calculate_moves2(solution, tabu_list, allow_zeros)
         print(move)
         solution = Calc.swap(solution, move[0], move[1])
+        if move[2] == 0:
+            no_change += 1
+        else:
+            no_change = 0
+        if no_change > 5:
+            id1 = np.random.randint(0, len(solution))
+            id2 = np.random.randint(0, len(solution))
+            while id1 == id2:
+                id2 = np.random.randint(0, len(solution))
+            tabu_list[id1, id2] = s
+            solution = Calc.swap(solution, id1, id2)
         tabu_list = Calc.update_tabu_list(tabu_list)
         tabu_list[move[0], move[1]] = s
         print("time per inside iter :", time.time() - start)
     np.savetxt(file_to_save, solution, delimiter=",")
     print("FINAL FOR ", s, "BLOCKS ", inside_iter, "INSIDE ITERATIONS ", "SAVED TO ", file_to_save)
-    plt.plot(times)
-    plt.ylabel("czas")
-    save = file_to_save + ".jpeg"
-    plt.savefig(save)
+    return times
 
-
-# sample use
-ts(s=12,
-   inside_iter=100,
-   file_to_read="dane3.csv",
-   file_to_save='dane3TS.csv',
-   allow_zeros=True,
-   headers=True,
-   init_swap=True)

@@ -1,4 +1,3 @@
-
 import time
 import numpy as np
 from numpy import genfromtxt
@@ -53,6 +52,7 @@ def ihc(outside_iter, indide_iter, no_change_number, file_to_read, file_to_save,
             delta_time = t2 - t1
             if delta_time < 0:
                 solution = m2
+                no_change = 0
             else:
                 no_change += 1
             if no_change > no_change_number:
@@ -78,12 +78,5 @@ def ihc(outside_iter, indide_iter, no_change_number, file_to_read, file_to_save,
         y2lab="best times for overall iter",
         title="IHC",
         savename=file_to_save)
+    return times
 
-
-ihc(outside_iter=100,
-    indide_iter=20000,
-    no_change_number=99999,
-    file_to_read="dane3.csv",
-    file_to_save="dane3ihc.csv",
-    init_swap=True,
-    headers=True)
